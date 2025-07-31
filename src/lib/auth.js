@@ -8,7 +8,6 @@ function getSecretKey() {
   return encoder.encode(secret);
 }
 
-// Generate JWT token
 export const generateToken = async (user) => {
   return await new SignJWT({
     id: user._id.toString(),
@@ -20,7 +19,6 @@ export const generateToken = async (user) => {
     .sign(getSecretKey());
 };
 
-// Verify JWT token
 export const verifyToken = async (token) => {
   const { payload } = await jwtVerify(token, getSecretKey());
   return payload;
