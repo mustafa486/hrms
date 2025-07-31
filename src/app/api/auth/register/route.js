@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/dbConnect';
-import User from '@/models/User';
+import User from '@/models/user';
 
 export async function POST(req) {
   await connectDB();
@@ -13,7 +13,7 @@ export async function POST(req) {
   }
 
   const hashed = await bcrypt.hash(password, 10);
-  const user = await User.create({ email, password: hashed, role: 'admin' }); // Set role as needed
+  const user = await User.create({ email, password: hashed}); 
 
   return NextResponse.json({ message: 'User registered' });
 }

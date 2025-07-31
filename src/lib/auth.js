@@ -1,7 +1,7 @@
 // /lib/auth.js
 import { SignJWT, jwtVerify } from 'jose';
 
-const secret = process.env.JWT_SECRET || 'your_fallback_secret';
+const secret = process.env.JWT_SECRET || 'your_strong_secret';
 const encoder = new TextEncoder();
 
 function getSecretKey() {

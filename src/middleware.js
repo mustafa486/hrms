@@ -1,25 +1,35 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from './lib/auth';
+import { verifyToken } from '@/lib/auth';
 
-export function middleware(request) {
-  const token = request.cookies.get('token')?.value;
+export async function middleware(req) {
+  const token = req.cookies.get('token')?.value;
 
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const url = req.nextUrl;
+  const isDashboard = url.pathname.startsWith('/dashboard');
+  const isAdmin = url.pathname.startsWith('/admin');
+
+  if (!token && (isDashboard || isAdmin)) {
+    return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
-  try {
-    const user = verifyToken(token);
-    if (request.nextUrl.pathname.startsWith('/admin') && user.role !== 'admin') {
-      return NextResponse.redirect(new URL('/login', request.url));
+  if (isAdmin) {
+    try {
+        // console.log("middleware->isAdmin")
+      const user = await verifyToken(token);
+      // console.log('Decoded user:', user);
+
+      if (user.role !== 'admin') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
+    } catch (err) {
+      console.error("Token verification failed:", err);
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
-
-    return NextResponse.next();
-  } catch (err) {
-    return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/admin/:path*'],
 };

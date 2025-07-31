@@ -1,29 +1,60 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
+  const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-    if (res.ok) router.push('/admin');
-    else alert('Login failed');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        console.log('Login succeeded:', data.message);
+        router.push('/admin'); 
+      } else {
+        console.warn('Login failed:', data?.error || data?.message);
+        setError(data?.error || data?.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Error during login:', err);
+      setError('Something went wrong.');
+    }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
-      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
-      <button onClick={handleSubmit}>Login</button>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <button type="submit">Login</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </form>
   );
 }
